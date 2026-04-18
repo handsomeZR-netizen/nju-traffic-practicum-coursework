@@ -1,0 +1,96 @@
+[env_conf]
+# Weather: 0 - Sunny, 1 - Rainy, 2 - Snowy, 3 - Foggy, Default: 0, Random: -1
+# 天气: 0 - 晴天，1 - 雨天，2 - 雪天，3 - 雾霾天，默认 0，随机-1
+weather = 0
+
+
+# Rush hour: 0 - Normal, 1 - Rush hour, Default: 0, Random: -1
+# 高峰期: 0 - 正常，1 - 高峰期，默认0，随机-1
+rush_hour = 0
+
+
+# Integer, unit: m/s
+# Maximum: 17 | Minimum: 5 | Default: 10
+# -1 indicates random.
+# Description:
+# The maximum speed limit for the lane. Each lane uses this speed limit configuration.
+# When a vehicle is generated, its speed is 0 and it will gradually accelerate to the lane's maximum speed.
+# During the vehicle's journey, its speed will change based on various situations.
+# After configuring the lane's maximum speed,
+# the "lane maximum speed" in all the above situations will be overridden by this setting.
+#整数，单位m/s
+#最大：17｜最小：5｜默认：10
+#-1表示随机。
+#说明：
+#车道的最大限制速度，每个车道都采用这个限速配置。车辆生成时速度为0，会逐渐加速至车道最大速度。车辆在行进过程中，会根据以上各种情况的发生而改变速度。
+#配置车道最大速度后，上述所有状况中"车道最大速度"都会被此项覆盖。
+speed_limit = 10
+
+
+# Integer
+# Maximum: 4 | Minimum: 0 | Default: 1
+# (corresponding to random vehicle probability - Maximum: 40% | Minimum: 0% | Default: 10%)
+# -1 indicates random.
+# Description: The maximum speed of irregular vehicles is randomly set between [lane speed limit, 50 m/s],
+# ignoring traffic signals.
+# 整数
+# 最大：4 | 最小：0 | 默认：1（对应随机车辆概率 - 最大：40% | 最小：0% | 默认：10%）
+# -1表示随机。
+# 说明：无规则车辆的最大速度在[车道限制速度，50m/s]之间随机，无视交通信号灯。
+speeding_cars_rate = 0
+
+
+# Integer
+# Value range: [150, 450], default: 300, -1 indicates random.
+# Description: Waiting vehicles - vehicles in the scene with a speed of 0, excluding those involved in accidents.
+#整型。
+#数值范围：[150, 450]，默认300，-1表示随机。
+#说明：等待中车辆 - 场景车辆速度为0且排除掉事故的车辆。
+max_waiting_cars = 300
+
+
+# Integer, unit: steps.
+# Value range: [80, 200], default: 140, -1 indicates random.
+# Description: The number of vehicles in a waiting state within the current scene is counted at each step.
+# If the number of waiting vehicles in the scene reaches the "maximum waiting vehicle count"
+# and the consecutive count reaches the maximum waiting vehicle duration, the task is considered timed out.
+# If, during any count, the number of waiting vehicles in the scene is less than the maximum waiting vehicle count,
+# the consecutive count is reset to zero.
+# 整型，单位：步。
+# 数值范围：[80, 200]，默认140，-1表示随机。
+# 说明：每一步统计一次当前场景内处于等待中状态的车辆数，
+# 若场景内等待中的车辆数达到“最大等待车辆数”且连续统计次数达到最大等待车辆持续时长，任务判定为超时。
+# 当某一次统计时，场景内等待中的车辆小于最大等待车辆数，则连续统计次数归零。
+max_waiting_cars_duration = 140
+
+
+# Integer (one prediction every 10 frames)
+# Maximum: 2000 | Minimum: 100 | Default: 1000
+# 整型（每10帧预测一步）
+# 最大：2000｜最小：100｜默认：1000
+max_step = 1000
+
+
+# Traffic Accident Configuration:
+#   Users can configure a random number of traffic accidents or customize specific traffic accidents.
+# random_count: The random number of traffic accidents, an integer in the range 0 ~ 4.
+#   If "custom_configuration" is empty,
+#   this field is used to generate the corresponding number of random traffic accidents.
+# custom_configuration: Traffic accident custom configuration item, table list type, max length is 4,
+#   including the lane number where the accident occurred, start time and end time.
+# lane_index: The lane number takes values ​​of "8~11", "20~23", "126~129", "162~163"。
+# start_time: The start time of the accident is an integer in the range 0 ~ max_step, in units of steps.
+# end_time: The end time of the accident is an integer in the range start_time ~ max_step, in units of steps.
+# 交通事故配置: 用户可以配置随机个数的交通事故或者自定义配置具体的交通事故。
+# random_count:交通事故随机数量值，int整型，范围为0 ~ 4，若"custom_configuration"为空，则采用该字段配置，生成对应数量的随机交通事故
+# custom_configuration: 交通事故自定义配置项，表数组类型，表的长度最大为4，包括事故发生所在车道编号、开始时间及结束时间三个子项，
+# 其中车道编号lane_index取值为"8~11"、"20~23"、"126~129"、"162~163"。
+# 故障开始时间start_time取值为0 ~ max_step，int类型，单位步；故障结束时间end_time取值为start_time ~ max_step，整数类型，单位步
+[env_conf.traffic_accidents]
+random_count = 0
+
+
+# Traffic control, similar to traffic accidents.
+# 交通管制，同交通事故。
+[env_conf.traffic_control]
+random_count = 0

@@ -1,0 +1,7 @@
+[intelligent_traffic_lights]
+run_handler = "environment.traffic_run_handler.TrafficRunHandler"
+rl_helper = "kaiwudrl.server.aisrv.kaiwu_rl_helper_standard.KaiWuRLStandardHelper"
+
+[intelligent_traffic_lights.policies.train_one]
+policy_builder = "kaiwudrl.server.aisrv.async_policy.AsyncBuilder"
+algo = "diy"
