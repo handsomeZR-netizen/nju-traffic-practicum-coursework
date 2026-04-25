@@ -1,4 +1,34 @@
-# 南京大学交通实训课程作业
+# Nju Traffic Practicum Coursework
+
+<!-- PORTFOLIO-SNAPSHOT:START -->
+<p align="left">
+  <img src="https://img.shields.io/badge/category-Reinforcement%20learning%20coursework-blue" alt="Category" />
+  <img src="https://img.shields.io/badge/status-Public%20portfolio%20artifact-2ea44f" alt="Status" />
+</p>
+
+> Tencent Kaiwu intelligent traffic light scheduling coursework with DIY/PPO agents, reproducible notes, upload tooling, and CI packaging.
+
+## Project Snapshot
+
+- Category: Reinforcement learning coursework
+- Stack: Python, coursework, reinforcement-learning, traffic-signal-control, intelligent-traffic, tencent-kaiwu
+- Status: Public portfolio artifact
+
+## What This Demonstrates
+
+- Presents the project with a clear purpose, technology stack, and review path.
+- Packages coursework as an inspectable public artifact rather than an unstructured submission.
+- Keeps implementation details and usage notes close to the code for easier reuse.
+
+## Quick Start
+
+```bash
+python -m pip install -e . && python -m compileall .
+```
+
+<!-- PORTFOLIO-SNAPSHOT:END -->
+
+## Original Documentation
 
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](pyproject.toml)
 [![Package Check](https://github.com/handsomeZR-netizen/nju-traffic-practicum-coursework/actions/workflows/package-check.yml/badge.svg)](https://github.com/handsomeZR-netizen/nju-traffic-practicum-coursework/actions/workflows/package-check.yml)
