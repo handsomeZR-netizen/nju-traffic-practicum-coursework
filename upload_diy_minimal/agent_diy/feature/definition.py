@@ -80,6 +80,34 @@ def get_webster_lane_group():
     }
 
 
+def get_vehicle_wait_time(agent, vehicle):
+    return float(
+        vehicle.get(
+            "waiting_time",
+            agent.preprocess.waiting_time_store.get(vehicle["v_id"], 0.0),
+        )
+    )
+
+
+def get_vehicle_status(vehicle):
+    try:
+        return int(vehicle.get("v_status", 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def is_accident_vehicle(vehicle):
+    return get_vehicle_status(vehicle) == 1
+
+
+def is_irregular_vehicle(vehicle):
+    return get_vehicle_status(vehicle) == 2
+
+
+def get_capped_vehicle_wait_time(agent, vehicle):
+    return min(get_vehicle_wait_time(agent, vehicle), Config.WAIT_TIME_CAP)
+
+
 class FeatureProcess:
     def __init__(self, logger):
         self.logger = logger
@@ -150,10 +178,10 @@ class FeatureProcess:
         scene_waiting_vehicle_count = 0
 
         for vehicle in vehicles:
-            if vehicle.get("speed", 0.0) <= 0.1:
+            if vehicle.get("speed", 0.0) <= 0.1 and not is_accident_vehicle(vehicle):
                 scene_waiting_vehicle_count += 1
 
-            if on_enter_lane(vehicle):
+            if on_enter_lane(vehicle) and not is_accident_vehicle(vehicle):
                 current_enter_lane_vehicle_ids.add(vehicle["v_id"])
 
             if vehicle["v_id"] not in self.vehicle_prev_junction:
@@ -178,6 +206,13 @@ class FeatureProcess:
         self.scene_waiting_vehicle_count = scene_waiting_vehicle_count
 
     def cal_waiting_time(self, frame_time, vehicle):
+        if is_accident_vehicle(vehicle):
+            if vehicle["v_id"] in self.waiting_time_store:
+                del self.waiting_time_store[vehicle["v_id"]]
+            if vehicle["v_id"] in self.last_waiting_moment:
+                del self.last_waiting_moment[vehicle["v_id"]]
+            return
+
         waiting_time = 0
         if on_enter_lane(vehicle):
             if vehicle["speed"] <= 0.1:
@@ -282,13 +317,40 @@ def reward_shaping(_obs, act, agent):
             agent.preprocess.prev_action_phase = act[1]
         return 0.0
 
-    wait_improve = previous_metrics["avg_wait"] - current_metrics["avg_wait"]
-    queue_improve = previous_metrics["queue_count"] - current_metrics["queue_count"]
-    close_improve = previous_metrics["close_count"] - current_metrics["close_count"]
-    delay_improve = previous_metrics["avg_delay"] - current_metrics["avg_delay"]
+    total_wait_improve = _clip_delta(
+        previous_metrics["total_wait"] - current_metrics["total_wait"],
+        Config.REWARD_TOTAL_WAIT_CLIP,
+    )
+    queue_improve = _clip_delta(
+        previous_metrics["queue_count"] - current_metrics["queue_count"],
+        Config.REWARD_QUEUE_CLIP,
+    )
+    close_improve = _clip_delta(
+        previous_metrics["close_count"] - current_metrics["close_count"],
+        Config.REWARD_CLOSE_CLIP,
+    )
+    delay_improve = _clip_delta(
+        previous_metrics["avg_delay"] - current_metrics["avg_delay"],
+        Config.REWARD_DELAY_CLIP,
+    )
+    max_wait_improve = _clip_delta(
+        previous_metrics["max_wait"] - current_metrics["max_wait"],
+        Config.REWARD_MAX_WAIT_CLIP,
+    )
+    scene_waiting_improve = _clip_delta(
+        previous_metrics["scene_waiting"] - current_metrics["scene_waiting"],
+        Config.REWARD_SCENE_WAITING_CLIP,
+    )
     throughput_gain = current_metrics["throughput"]
 
-    risk_penalty = max(0.0, current_metrics["scene_waiting"] - 220.0) / 25.0
+    risk_penalty = max(
+        0.0,
+        current_metrics["scene_waiting"] - Config.SCENE_WAITING_RISK_THRESHOLD,
+    ) / Config.SCENE_WAITING_RISK_DIVISOR
+    max_wait_penalty = max(
+        0.0,
+        current_metrics["max_wait"] - Config.MAX_WAIT_PENALTY_THRESHOLD,
+    ) * Config.MAX_WAIT_PENALTY_COEF
     switch_penalty = 0.0
     if (
         act is not None
@@ -296,22 +358,25 @@ def reward_shaping(_obs, act, agent):
         and agent.preprocess.prev_action_phase is not None
         and act[1] != agent.preprocess.prev_action_phase
     ):
-        switch_penalty = 0.22
+        switch_penalty = Config.SWITCH_PENALTY
 
     reward = (
-        1.2 * wait_improve
-        + 1.4 * queue_improve
-        + 1.0 * close_improve
-        + 0.9 * delay_improve
-        + 0.4 * throughput_gain
-        - 1.7 * risk_penalty
+        Config.REWARD_TOTAL_WAIT_COEF * total_wait_improve
+        + Config.REWARD_QUEUE_COEF * queue_improve
+        + Config.REWARD_CLOSE_COEF * close_improve
+        + Config.REWARD_DELAY_COEF * delay_improve
+        + Config.REWARD_MAX_WAIT_COEF * max_wait_improve
+        + Config.REWARD_SCENE_WAITING_COEF * scene_waiting_improve
+        + Config.REWARD_THROUGHPUT_COEF * throughput_gain
+        - Config.REWARD_RISK_COEF * risk_penalty
+        - max_wait_penalty
         - switch_penalty
     )
 
     if current_metrics["enter_lane_vehicle_count"] == 0 and current_metrics["queue_count"] == 0:
-        reward += 0.4
+        reward += Config.EMPTY_ROAD_BONUS
 
-    reward = float(np.clip(reward, -20.0, 20.0))
+    reward = float(np.clip(reward, -25.0, 25.0))
     agent.preprocess.last_reward_metrics = current_metrics
     if act is not None and len(act) >= 2:
         agent.preprocess.prev_action_phase = act[1]
@@ -408,26 +473,31 @@ def _build_reward_metrics(raw_obs, agent):
     close_count = 0
     scene_waiting = 0
     enter_lane_vehicle_count = 0
+    max_wait = 0.0
 
     for vehicle in vehicles:
         speed = float(vehicle.get("speed", 0.0))
-        if speed <= 0.1:
+        if speed <= 0.1 and not is_accident_vehicle(vehicle):
             scene_waiting += 1
 
         if not on_enter_lane(vehicle):
             continue
 
+        if is_accident_vehicle(vehicle):
+            continue
+
         lane_id = vehicle["lane"]
         speed_limit = _get_lane_speed_limit(agent, lane_id)
-        wait_time = float(vehicle.get("waiting_time", 0.0))
+        wait_time = get_capped_vehicle_wait_time(agent, vehicle)
         speed_ratio = min(speed / max(speed_limit, 1e-6), 1.0)
-        delay_proxy = wait_time + (1.0 - speed_ratio) * 5.0
+        delay_value = float(vehicle.get("delay", wait_time + (1.0 - speed_ratio) * 5.0))
         stop_line_distance = float(vehicle.get("position_in_lane", {}).get("y", Config.CLOSE_DISTANCE + 1))
 
         enter_lane_vehicle_ids.add(vehicle["v_id"])
         enter_lane_vehicle_count += 1
         total_wait += wait_time
-        total_delay += delay_proxy
+        max_wait = max(max_wait, wait_time)
+        total_delay += delay_value
         total_speed_ratio += speed_ratio
         if speed <= 0.3:
             queue_count += 1
@@ -437,6 +507,7 @@ def _build_reward_metrics(raw_obs, agent):
     norm = max(enter_lane_vehicle_count, 1)
     throughput = len(agent.preprocess.last_enter_lane_vehicle_ids - enter_lane_vehicle_ids)
     return {
+        "total_wait": total_wait,
         "avg_wait": total_wait / norm,
         "avg_delay": total_delay / norm,
         "avg_speed_ratio": total_speed_ratio / norm,
@@ -445,6 +516,7 @@ def _build_reward_metrics(raw_obs, agent):
         "scene_waiting": float(scene_waiting),
         "throughput": float(throughput),
         "enter_lane_vehicle_count": float(enter_lane_vehicle_count),
+        "max_wait": float(max_wait),
     }
 
 
@@ -452,3 +524,7 @@ def _get_lane_speed_limit(agent, lane_id):
     lane_cfg = agent.preprocess.lane_dict.get(lane_id, {})
     lane_speed_limit = lane_cfg.get("speed_limit", 10.0)
     return float(lane_speed_limit) if lane_speed_limit else 10.0
+
+
+def _clip_delta(value, clip_value):
+    return float(np.clip(value, -clip_value, clip_value))

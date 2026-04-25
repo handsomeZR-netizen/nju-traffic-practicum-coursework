@@ -62,7 +62,7 @@ max_waiting_cars_duration = 140
 # Maximum: 2000 | Minimum: 100 | Default: 1000
 # 整型（每10帧预测一步）
 # 最大：2000｜最小：100｜默认：1000
-max_step = 1000
+max_step = 1500
 
 # Traffic Accident Configuration:
 #   Users can configure a random number of traffic accidents or customize specific traffic accidents.
@@ -80,9 +80,9 @@ max_step = 1000
 # 其中车道编号lane_index取值为"8~11"、"20~23"、"126~129"、"162~163"。
 # 故障开始时间start_time取值为0 ~ max_step，int类型，单位步；故障结束时间end_time取值为start_time ~ max_step，整数类型，单位步
 [env_conf.traffic_accidents]
-random_count = 0
+random_count = 1
 
 # Traffic control, similar to traffic accidents.
 # 交通管制，同交通事故。
 [env_conf.traffic_control]
-random_count = 0
+random_count = 1

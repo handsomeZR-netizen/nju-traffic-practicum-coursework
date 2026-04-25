@@ -1,0 +1,21 @@
+name: Package Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  package-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Compile Python sources
+        run: |
+          python -m compileall agent_diy agent_ppo automation build_upload_diy_package.py train_test.py
+      - name: Validate sync tooling
+        run: |
+          python automation/sync_manifest.py --json-out automation/data/sync_manifest.json
+          python automation/build_diy_sync_batch.py --dry-run --with-conf

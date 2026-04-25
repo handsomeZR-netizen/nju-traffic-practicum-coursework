@@ -25,11 +25,11 @@ import kaiwudrl.server.aisrv.aisrv as aisrv
 from kaiwudrl.common.config.config_control import CONFIG
 from typing import List
 
-# To run the train_test, you must modify the algorithm name here. It must be one of ppo, diy, pielight.
+# To run the train_test, you must modify the algorithm name here. It must be one of ppo, diy.
 # Simply modify the value of the algorithm_name variable.
-# 运行train_test前必须修改这里的算法名字, 必须是ppo、diy、pielight里的一个, 修改algorithm_name的值即可
-algorithm_name_list = ["ppo", "diy", "pielight"]
-algorithm_name = "ppo"
+# 运行train_test前必须修改这里的算法名字, 必须是ppo、diy里的一个, 修改algorithm_name的值即可
+algorithm_name_list = ["ppo", "diy"]
+algorithm_name = "diy"
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 

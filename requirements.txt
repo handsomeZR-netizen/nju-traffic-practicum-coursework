@@ -1,0 +1,5 @@
+# Core third-party dependencies used by the reusable agent/model code.
+# Tencent Kaiwu runtime modules such as kaiwu_agent and kaiwudrl are provided
+# by the Tencent Kaiwu platform environment.
+numpy>=1.21
+torch>=1.7

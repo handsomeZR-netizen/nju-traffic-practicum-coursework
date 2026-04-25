@@ -29,7 +29,7 @@ from typing import List
 # Simply modify the value of the algorithm_name variable.
 # 运行train_test前必须修改这里的算法名字, 必须是ppo、diy里的一个, 修改algorithm_name的值即可
 algorithm_name_list = ["ppo", "diy"]
-algorithm_name = "ppo"
+algorithm_name = "diy"
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 

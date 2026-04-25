@@ -1,0 +1,11 @@
+include README.md
+include NOTICE.md
+include LICENSE
+include requirements.txt
+include kaiwu.json
+include build_upload_diy_package.py
+recursive-include agent_diy *.py *.toml
+recursive-include agent_ppo *.py *.toml
+recursive-include conf *.py *.toml *.yaml
+recursive-include automation *.py
+recursive-include upload_diy_minimal *.py *.toml *.json *.md

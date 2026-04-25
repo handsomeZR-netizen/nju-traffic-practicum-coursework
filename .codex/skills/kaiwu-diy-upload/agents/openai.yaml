@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kaiwu DIY Upload"
+  short_description: "Kaiwu DIY remote upload workflow"
+  default_prompt: "Use this skill when preparing a Tencent Kaiwu DIY upload from this repo through chrome-devtools-mcp."

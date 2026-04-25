@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nju-traffic-practicum-coursework"
+version = "0.1.0"
+description = "Tencent Kaiwu intelligent traffic light scheduling coursework with reusable DIY/PPO agents and upload tooling."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT for repository-authored packaging and glue code; third-party and Tencent platform files retain their original notices. See NOTICE.md." }
+authors = [{ name = "handsomeZR-netizen" }]
+keywords = ["traffic-signal-control", "reinforcement-learning", "tencent-kaiwu", "coursework"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.21",
+    "torch>=1.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+]
+reference = [
+    "graphviz>=0.20",
+    "gym>=0.21",
+    "scikit-learn>=1.0",
+    "scikit-optimize>=0.9",
+]
+
+[project.urls]
+Homepage = "https://github.com/handsomeZR-netizen/nju-traffic-practicum-coursework"
+Repository = "https://github.com/handsomeZR-netizen/nju-traffic-practicum-coursework"
+Issues = "https://github.com/handsomeZR-netizen/nju-traffic-practicum-coursework/issues"
+
+[tool.setuptools.packages.find]
+include = ["agent_diy*", "agent_ppo*", "conf*"]
+
+[tool.setuptools.package-data]
+agent_diy = ["conf/*.toml"]
+agent_ppo = ["conf/*.toml"]
+conf = ["*.toml", "kaiwudrl/*.toml", "kaiwudrl/*.yaml"]
